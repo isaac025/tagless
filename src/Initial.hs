@@ -1,85 +1,58 @@
 module Initial where
 
-import Data.Text.Lazy (Text, pack)
+import Data.Text.Lazy (Text)
 import Text.Parsec (
     ParseError,
-    alphaNum,
     char,
+    digit,
     many1,
     parse,
     spaces,
+    string,
+    try,
     (<|>),
  )
 import Text.Parsec.Text.Lazy (Parser)
 
-identity :: Expr
-identity = Lam "x" (Var "x")
-
-self :: Expr
-self = Lam "s" (App (Var "s") (Var "s"))
-
-data Expr
-    = Var Text
-    | Lam Text Expr
-    | App Expr Expr
+data BinOp = Add | Sub | Mult | And | Or
     deriving (Show)
 
--- A var is a letter, example: "x"
-parseVar :: Parser Expr
-parseVar = Var . pack <$> many1 alphaNum
+data Expr
+    = IntE Int
+    | BoolE Bool
+    | BinE BinOp Expr Expr
+    deriving (Show)
 
--- A Lambda is a letter followed by a body
-parseLam :: Parser Expr
-parseLam = do
-    _ <- char '\\'
-    boundVar <- pack <$> many1 alphaNum
-    _ <- char '.'
-    Lam boundVar <$> parseExpr
+-- an integer is simple, one or more digits
+parseInt :: Parser Expr
+parseInt = IntE . read <$> many1 digit
 
-parseApp :: Parser Expr
-parseApp = do
-    _ <- char '('
-    e1 <- spaces *> parseExpr
-    e2 <- spaces *> parseExpr
-    _ <- char ')'
-    pure $ App e1 e2
+-- A boolean is either the string "true" or "false"
+parseBool :: Parser Expr
+parseBool = BoolE <$> (spaces *> (True <$ string "true") <|> (False <$ string "false"))
+
+term :: Parser Expr
+term = parseBool <|> parseInt
+
+-- A binary operator is one of the following strings:
+-- +, -, *, /\, \/
+parseBin :: Parser BinOp
+parseBin =
+    (Add <$ char '+')
+        <|> (Sub <$ char '-')
+        <|> (Mult <$ char '*')
+        <|> (And <$ string "/\\")
+        <|> (Or <$ string "\\/")
+
+-- A binary operator is an expr BINOP expr
+parseBinOp :: Parser Expr
+parseBinOp = do
+    e1 <- spaces *> term
+    bin <- spaces *> parseBin
+    BinE bin e1 <$> (spaces *> term)
 
 parseExpr :: Parser Expr
-parseExpr = parseApp <|> parseLam <|> parseVar
+parseExpr = try parseBinOp <|> term
 
 parser :: Text -> Either ParseError Expr
 parser = parse parseExpr "initial"
-
-substitute :: Text -> Expr -> Expr -> Expr
-substitute x rep expr =
-    case expr of
-        Var v
-            | v == x -> rep
-            | otherwise -> Var v
-        Lam v body
-            | v == x -> Lam v body
-            | v `elem` freeVars rep ->
-                let v' = freshVar v body rep
-                 in Lam v' (substitute x rep (substitute v (Var v') body))
-        App e1 e2 -> App (substitute x rep e1) (substitute x rep e2)
-
-freeVars :: Expr -> [Text]
-freeVars expr =
-    case expr of
-        Var v -> [v]
-        Lam v body -> filter (/= v) (freeVars body)
-        App e1 e2 -> freeVars e1 ++ freeVars e2
-
-freshVar :: Text -> Expr -> Expr -> Text
-freshVar v e1 e2 = head [v' | v' <- map (\i -> v <> pack (show i)) [1 :: Int ..], v' `notElem` (freeVars e1 ++ freeVars e2)]
-
-betaReduce :: Expr -> Maybe Expr
-betaReduce expr =
-    case expr of
-        App (Lam x body) arg -> Just (substitute x arg body)
-        App e1 e2 ->
-            case betaReduce e1 of
-                Just e1' -> Just (App e1' e2)
-                Nothing -> App e1 <$> betaReduce e2
-        Lam x body -> Lam x <$> betaReduce body
-        _ -> Nothing

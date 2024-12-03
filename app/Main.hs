@@ -2,7 +2,20 @@ module Main where
 
 import Server
 
--- import System.IO (BufferMode (..), hSetBuffering, stdout)
+{-repl :: IO ()
+repl = do
+    putStr "> "
+    l <- getLine
+    when (l == "q" || l == "quit") exitSuccess
+    let parsed = parser l
+    case parsed of
+        Left err -> print err
+        Right ast -> print ast
+    repl
+-}
 
 main :: IO ()
-main = runApp
+main =
+    {- do
+    hSetBuffering stdout NoBuffering
+    repl -} runApp

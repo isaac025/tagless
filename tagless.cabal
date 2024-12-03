@@ -45,8 +45,8 @@ executable tagless
                     , servant-server
                     , servant-lucid
                     , lucid
-                    , clay
                     , warp
                     , text
+                    , http-api-data
     hs-source-dirs:   app
     default-language: Haskell2010

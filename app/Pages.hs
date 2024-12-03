@@ -1,3 +1,5 @@
+{-# LANGUAGE ImportQualifiedPost #-}
+
 module Pages where
 
 import Data.Functor.Identity
@@ -11,6 +13,7 @@ base t h =
             head_ $ do
                 title_ "CCOM 6029 Presentation"
                 link_ [rel_ "stylesheet", href_ "/static/semantic.min.css"]
+                style_ "body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f7f7f7; }"
             body_ $ do
                 div_ [class_ "ui raised very padded text container segment"] $ do
                     h1_ [class_ "ui floated header"] t
@@ -61,12 +64,27 @@ lessonPage =
                 ")"
         nextButton "playground"
 
-playgroundPage :: Html ()
-playgroundPage =
+playgroundPage :: String -> Html ()
+playgroundPage "" =
     base "Playground" $ do
-        form_ [method_ "post", action_ ""] $ do
-            label_ [] "Initial"
-            textarea_ [] ""
+        form_ [method_ "post", action_ "/playground/initial"] $ do
+            label_ [for_ "initial"] "Initial"
+            textarea_ [id_ "initial", name_ "initial", style_ "width: 620px; height: 120px"] ""
+            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
+        form_ [method_ "post", action_ "/playground"] $ do
             label_ [] "Final"
-            textarea_ [] ""
-            button_ [type_ "submit"] "Interpret"
+            textarea_ [style_ "width: 620px; height: 120px"] ""
+            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
+playgroundPage ast =
+    base "Playground" $ do
+        form_ [method_ "post", action_ "/playground/initial"] $ do
+            label_ [for_ "initial"] "Initial"
+            textarea_ [id_ "initial", name_ "initial", style_ "width: 620px; height: 120px"] ""
+            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
+        form_ [method_ "post", action_ "/playground"] $ do
+            label_ [] "Final"
+            textarea_ [style_ "width: 620px; height: 120px"] ""
+            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
+        div_ [class_ "ui clearing divider"] ""
+        h2_ [] "Output"
+        toHtml ast
