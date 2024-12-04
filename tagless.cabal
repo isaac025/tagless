@@ -39,6 +39,8 @@ executable tagless
     other-modules:
         Server
         Pages
+        InitialPage
+        FinalPage
     build-depends:    base ^>=4.17.2.1
                     , tagless
                     , servant

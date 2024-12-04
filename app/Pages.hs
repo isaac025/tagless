@@ -1,5 +1,3 @@
-{-# LANGUAGE ImportQualifiedPost #-}
-
 module Pages where
 
 import Data.Functor.Identity
@@ -35,22 +33,24 @@ introPage =
             li_ [] "Titulo alterno: An alternative approach to building Embedded DSLs"
         nextButton "what-is-it-about"
 
-backgrounPage :: Html ()
-backgrounPage =
-    base "De que habla el articulo?" $ do
+backgroundPage :: Html ()
+backgroundPage =
+    base "¿De qué habla el artículo?" $ do
         ul_ [] $ do
             li_ $ do
                 "Initial Encoding - Usar ADT para implementar el interpretador"
                 pre_ [] $ do
-                    code_ "data Expr = Int | Plus Expr Expr"
+                    code_ "data Expr = IntE Int | Plus Expr Expr"
+                pre_ [] $ do
+                    code_ "data Expr = IntE Int | BoolE Bool | Plus Expr Expr"
             li_ [] $ do
                 "Final Encoding - Usar typeclasses mejor"
                 pre_ [] $ do
-                    code_ [] "class Expr repr where"
+                    code_ [] "class Expr expr where"
                 pre_ [] $ do
-                    code_ [] "int :: Int -> repr"
+                    code_ [] "    lit :: a -> expr"
                 pre_ [] $ do
-                    code_ [] "plus :: repr -> repr -> repr"
+                    code_ [] "    plus :: expr -> expr -> expr"
         nextButton "lesson"
 
 lessonPage :: Html ()
@@ -62,29 +62,4 @@ lessonPage =
                 "Interpretadores y DSLs mas ampliables ("
                 i_ "more extensible"
                 ")"
-        nextButton "playground"
-
-playgroundPage :: String -> Html ()
-playgroundPage "" =
-    base "Playground" $ do
-        form_ [method_ "post", action_ "/playground/initial"] $ do
-            label_ [for_ "initial"] "Initial"
-            textarea_ [id_ "initial", name_ "initial", style_ "width: 620px; height: 120px"] ""
-            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
-        form_ [method_ "post", action_ "/playground"] $ do
-            label_ [] "Final"
-            textarea_ [style_ "width: 620px; height: 120px"] ""
-            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
-playgroundPage ast =
-    base "Playground" $ do
-        form_ [method_ "post", action_ "/playground/initial"] $ do
-            label_ [for_ "initial"] "Initial"
-            textarea_ [id_ "initial", name_ "initial", style_ "width: 620px; height: 120px"] ""
-            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
-        form_ [method_ "post", action_ "/playground"] $ do
-            label_ [] "Final"
-            textarea_ [style_ "width: 620px; height: 120px"] ""
-            button_ [class_ "positive ui button", type_ "submit"] "Interpret"
-        div_ [class_ "ui clearing divider"] ""
-        h2_ [] "Output"
-        toHtml ast
+        nextButton "initial"
