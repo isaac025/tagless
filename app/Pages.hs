@@ -20,7 +20,7 @@ base t h =
 
 nextButton :: Text -> Html ()
 nextButton endpoint =
-    a_ [href_ $ "http://localhost:8080/" <> endpoint, class_ "primary ui right labeled icon button"] $ do
+    a_ [href_ $ "http://ihld.xyz:8080/" <> endpoint, class_ "primary ui right labeled icon button"] $ do
         i_ [class_ "right arrow icon"] ""
         "Next"
 
