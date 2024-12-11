@@ -4,7 +4,6 @@
 
 module Server where
 
-import Control.Monad.IO.Class
 import Data.Text.Lazy (Text)
 import FinalPage
 import GHC.Generics (Generic)
@@ -73,7 +72,6 @@ server = intro :<|> lesson :<|> background :<|> (initial :<|> initialPost) :<|> 
             Left _ -> pure $ finalPage (Pet "default-name" "idle")
             Right ast -> do
                 let a = runPet ast (Pet "default-name" "idle")
-                liftIO $ print a
                 pure $ finalPage a
 
 api :: Proxy API

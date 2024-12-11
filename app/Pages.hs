@@ -27,15 +27,18 @@ nextButton endpoint =
 introPage :: Html ()
 introPage =
     base "Typed Tagless Final Interpreters" $ do
-        i_ [] "Isaac H. Lopez Diaz"
+        div_ [] $ i_ [] "Isaac H. López Díaz"
+        div_ [] $ i_ [] "CCOM 6029"
+        div_ [] $ i_ [] "Humberto Ortíz-Zauzaga"
         ul_ [] $ do
             li_ [] "Original: Finally Tagless, Partially Evaluated Tagless Staged Interpreters for Simpler Typed Languages"
-            li_ [] "Titulo alterno: An alternative approach to building Embedded DSLs"
+            li_ [] "Título alterno: An alternative approach to building Embedded DSLs"
         nextButton "what-is-it-about"
 
 backgroundPage :: Html ()
 backgroundPage =
     base "¿De qué habla el artículo?" $ do
+        img_ [alt_ "rice-beans", src_ "/static/imgs/arroz.jpg", style_ "width: 200px"]
         ul_ [] $ do
             li_ $ do
                 "Initial Encoding - Usar ADT para implementar el interpretador"
