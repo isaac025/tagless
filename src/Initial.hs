@@ -1,58 +1,62 @@
-module Initial where
+module Initial (initialParser) where
 
-import Data.Text.Lazy (Text)
+import Control.Monad (void)
+import Data.Text.Lazy (Text, pack)
 import Text.Parsec (
-    ParseError,
     char,
-    digit,
+    choice,
+    letter,
     many1,
+    oneOf,
     parse,
-    spaces,
     string,
     try,
     (<|>),
  )
 import Text.Parsec.Text.Lazy (Parser)
 
-data BinOp = Add | Sub | Mult | And | Or
-    deriving (Show)
-
 data Expr
-    = IntE Int
-    | BoolE Bool
-    | BinE BinOp Expr Expr
+    = NameE Text
+    | MkPetE Text Text
     deriving (Show)
 
--- an integer is simple, one or more digits
-parseInt :: Parser Expr
-parseInt = IntE . read <$> many1 digit
+-- Parser helpers
+whitespace :: Parser ()
+whitespace = choice [simpleWhitespace *> whitespace, pure ()]
+  where
+    simpleWhitespace = void $ many1 (oneOf " \t\n")
 
--- A boolean is either the string "true" or "false"
-parseBool :: Parser Expr
-parseBool = BoolE <$> (spaces *> (True <$ string "true") <|> (False <$ string "false"))
+identifier :: Parser Text
+identifier = pack <$> petLexeme (many1 (letter <|> char '_'))
 
-term :: Parser Expr
-term = parseBool <|> parseInt
+petLexeme :: Parser p -> Parser p
+petLexeme p = p <* whitespace
 
--- A binary operator is one of the following strings:
--- +, -, *, /\, \/
-parseBin :: Parser BinOp
-parseBin =
-    (Add <$ char '+')
-        <|> (Sub <$ char '-')
-        <|> (Mult <$ char '*')
-        <|> (And <$ string "/\\")
-        <|> (Or <$ string "\\/")
+nameK :: Parser ()
+nameK = void $ petLexeme (string "name")
 
--- A binary operator is an expr BINOP expr
-parseBinOp :: Parser Expr
-parseBinOp = do
-    e1 <- spaces *> term
-    bin <- spaces *> parseBin
-    BinE bin e1 <$> (spaces *> term)
+actionK :: Parser Text
+actionK = pack <$> petLexeme (string "sleep" <|> string "eat" <|> string "bathe")
+
+-- a pet is created by wrinting:
+-- new <PET_TYPE> <NAME>
+parseNew :: Parser Expr
+parseNew = do
+    nameK
+    NameE <$> identifier
+
+-- make the pet do something by:
+-- <PET_NAME> (sleep | eat | sleep)
+parseMk :: Parser Expr
+parseMk = do
+    pn <- identifier
+    MkPetE pn <$> actionK
 
 parseExpr :: Parser Expr
-parseExpr = try parseBinOp <|> term
+parseExpr = try parseNew <|> try parseMk
 
-parser :: Text -> Either ParseError Expr
-parser = parse parseExpr "initial"
+initialParser :: Text -> Either String Expr
+initialParser input =
+    case parse parseExpr "initial" input of
+        Left err -> Left $ show err
+        Right ast -> Right ast
